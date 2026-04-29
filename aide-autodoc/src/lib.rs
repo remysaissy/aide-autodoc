@@ -5,8 +5,8 @@
 //!
 //! Compatible with axum 0.8+ and aide 0.15+.
 //!
-//! Forked from `aidecomment 0.1.1` on crates.io, via the internal weavly fork,
-//! and updated for axum 0.8 (native async traits, no `axum::async_trait`) and
+//! Forked from `aidecomment 0.1.1` on crates.io,
+//! updated for axum 0.8 (native async traits, no `axum::async_trait`) and
 //! aide 0.15 (`aide::generate::GenContext` instead of `aide::gen::GenContext`).
 //!
 //! See the [README](https://github.com/remysaissy/aide-autodoc) for usage examples.
