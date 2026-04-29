@@ -1,0 +1,28 @@
+[package]
+name = "aide-autodoc"
+description = "Extract OpenAPI summary/description from doc comments for aide and axum."
+readme.workspace = true
+version.workspace = true
+license.workspace = true
+edition.workspace = true
+authors.workspace = true
+repository.workspace = true
+categories.workspace = true
+keywords.workspace = true
+
+[package.metadata.docs.rs]
+all-features = true
+rustdoc-args = ["--cfg", "docsrs"]
+targets = ["x86_64-unknown-linux-gnu"]
+
+[lib]
+proc-macro = true
+
+[dependencies]
+proc-macro2 = { workspace = true }
+quote = { workspace = true }
+syn = { workspace = true }
+
+# NOTE: aide and axum are NOT runtime deps. They are referenced via absolute
+# paths (::aide::, ::axum::) in macro-generated code and required by USERS
+# of this macro, not by the macro crate itself. Added in PR #8 as dev-deps.
