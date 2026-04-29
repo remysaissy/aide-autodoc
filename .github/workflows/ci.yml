@@ -1,0 +1,75 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+
+jobs:
+  format:
+    name: Format
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions-rust-lang/setup-rust-toolchain@v1
+      - run: rustup toolchain install
+      - run: rustup component add rustfmt
+      - uses: Swatinem/rust-cache@v2
+      - name: Run format check
+        run: ./format.sh --check
+
+  check:
+    name: Check
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions-rust-lang/setup-rust-toolchain@v1
+      - run: rustup toolchain install
+      - run: rustup component add clippy
+      - uses: Swatinem/rust-cache@v2
+      - name: Run clippy check
+        run: ./check.sh --all-features
+
+  feature-matrix:
+    name: Test Feature Combinations (${{ matrix.features.name }})
+    runs-on: ubuntu-22.04
+    strategy:
+      fail-fast: false
+      matrix:
+        features:
+          - name: "default"
+            flags: ""
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions-rust-lang/setup-rust-toolchain@v1
+      - run: rustup toolchain install stable --profile minimal
+      - uses: Swatinem/rust-cache@v2
+        with:
+          key: ${{ matrix.features.name }}
+      - name: Test with ${{ matrix.features.name }}
+        run: ./test.sh ${{ matrix.features.flags }}
+
+  coverage:
+    name: Code Coverage
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions-rust-lang/setup-rust-toolchain@v1
+      - run: rustup toolchain install
+      - uses: Swatinem/rust-cache@v2
+      - name: Install cargo-llvm-cov
+        uses: taiki-e/install-action@cargo-llvm-cov
+      - name: Generate coverage and check thresholds
+        run: ./coverage.sh --lcov
+
+  examples:
+    name: Examples
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions-rust-lang/setup-rust-toolchain@v1
+      - run: rustup toolchain install
+      - uses: Swatinem/rust-cache@v2
+      - name: Build examples
+        run: cargo build --workspace --examples
