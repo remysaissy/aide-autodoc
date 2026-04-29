@@ -45,26 +45,22 @@ fn build_openapi(router: ApiRouter) -> Value {
 
 #[test]
 fn test_summary_extracted_from_first_paragraph() {
-    let router = ApiRouter::new().api_route(
-        "/x",
-        aide::axum::routing::get(handler_with_docs),
-    );
+    let router = ApiRouter::new().api_route("/x", aide::axum::routing::get(handler_with_docs));
     let json = build_openapi(router);
 
     let op = get_operation(&json, "/x", "get");
     assert_eq!(op["summary"].as_str().unwrap(), "First paragraph summary");
-    assert!(op["description"]
-        .as_str()
-        .unwrap()
-        .contains("Second paragraph description"));
+    assert!(
+        op["description"]
+            .as_str()
+            .unwrap()
+            .contains("Second paragraph description")
+    );
 }
 
 #[test]
 fn test_summary_only_no_description() {
-    let router = ApiRouter::new().api_route(
-        "/y",
-        aide::axum::routing::get(handler_single_line),
-    );
+    let router = ApiRouter::new().api_route("/y", aide::axum::routing::get(handler_single_line));
     let json = build_openapi(router);
 
     let op = get_operation(&json, "/y", "get");
@@ -75,10 +71,7 @@ fn test_summary_only_no_description() {
 
 #[test]
 fn test_no_doc_comments() {
-    let router = ApiRouter::new().api_route(
-        "/z",
-        aide::axum::routing::get(handler_no_docs),
-    );
+    let router = ApiRouter::new().api_route("/z", aide::axum::routing::get(handler_no_docs));
     let json = build_openapi(router);
 
     let op = get_operation(&json, "/z", "get");
@@ -90,26 +83,23 @@ fn test_no_doc_comments() {
 
 #[test]
 fn test_multiline_description() {
-    let router = ApiRouter::new().api_route(
-        "/m",
-        aide::axum::routing::get(handler_multi),
-    );
+    let router = ApiRouter::new().api_route("/m", aide::axum::routing::get(handler_multi));
     let json = build_openapi(router);
 
     let op = get_operation(&json, "/m", "get");
     assert_eq!(op["summary"].as_str().unwrap(), "Multi line continued");
-    assert!(op["description"]
-        .as_str()
-        .unwrap()
-        .contains("Description paragraph"));
+    assert!(
+        op["description"]
+            .as_str()
+            .unwrap()
+            .contains("Description paragraph")
+    );
 }
 
 #[test]
 fn test_summary_trims_whitespace() {
-    let router = ApiRouter::new().api_route(
-        "/w",
-        aide::axum::routing::get(handler_whitespace_summary),
-    );
+    let router =
+        ApiRouter::new().api_route("/w", aide::axum::routing::get(handler_whitespace_summary));
     let json = build_openapi(router);
 
     let op = get_operation(&json, "/w", "get");
