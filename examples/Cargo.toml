@@ -1,0 +1,29 @@
+[package]
+name = "aide-autodoc-examples"
+publish = false
+readme = "README.md"
+
+edition.workspace = true
+version.workspace = true
+license.workspace = true
+repository.workspace = true
+authors.workspace = true
+
+[dependencies]
+aide-autodoc = { path = "../aide-autodoc" }
+aide = { version = "0.15", features = ["axum"] }
+axum = "0.8"
+serde_json = "1.0"
+tokio = { version = "1", features = ["macros", "rt-multi-thread"] }
+
+[[example]]
+name = "basic_usage"
+
+[[example]]
+name = "multi_paragraph"
+
+[[example]]
+name = "no_docs"
+
+[[example]]
+name = "full_app"
