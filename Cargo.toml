@@ -1,6 +1,6 @@
 [workspace]
 resolver = "2"
-members = ["aide-autodoc"]
+members = ["aide-autodoc", "examples"]
 
 [workspace.package]
 edition = "2024"
