@@ -22,9 +22,9 @@ Options:
     --help        Display this help message
 
 Examples:
-    $0 --revision    # 0.0.9 -> 0.0.10
-    $0 --minor       # 0.0.9 -> 0.1.0
-    $0 --major       # 0.0.9 -> 1.0.0
+    $0 --revision    # 0.0.9-dev -> 0.0.10-dev
+    $0 --minor       # 0.0.9-dev -> 0.1.0-dev
+    $0 --major       # 0.0.9-dev -> 1.0.0-dev
 
 Note: This script will:
   1. Update the version in Cargo.toml (workspace)
@@ -64,9 +64,15 @@ get_current_version() {
     grep '^version = ' Cargo.toml | head -1 | sed 's/version = "\(.*\)"/\1/'
 }
 
+# Strip -dev suffix from a version string
+strip_dev() {
+    echo "$1" | sed 's/-dev$//'
+}
+
 # Parse version components
 parse_version() {
-    local version=$1
+    local version
+    version=$(strip_dev "$1")
     echo "$version" | sed 's/\./ /g'
 }
 
@@ -96,7 +102,7 @@ bump_version() {
             ;;
     esac
 
-    echo "$major.$minor.$patch"
+    echo "$major.$minor.$patch-dev"
 }
 
 # Update version in Cargo.toml
@@ -118,10 +124,12 @@ update_cargo_version() {
 # Generate changelog using git-cliff
 update_changelog() {
     local new_version=$1
+    local clean_version
+    clean_version=$(strip_dev "$new_version")
 
     print_info "Generating CHANGELOG.md using git-cliff..."
 
-    if git-cliff --unreleased --tag "v$new_version" -o CHANGELOG.md; then
+    if git-cliff --unreleased --tag "v$clean_version" -o CHANGELOG.md; then
         print_info "CHANGELOG.md updated successfully"
     else
         print_error "Failed to generate CHANGELOG.md"
@@ -181,6 +189,9 @@ main() {
         exit 0
     fi
 
+    local clean_version
+    clean_version=$(strip_dev "$new_version")
+
     # Update Cargo.toml
     update_cargo_version "$new_version"
 
@@ -196,9 +207,9 @@ main() {
     print_info ""
     print_info "Next steps:"
     print_info "  1. Review the changes: git diff --cached"
-    print_info "  2. Commit the changes: git commit -m 'chore(release): prepare for v$new_version'"
-    print_info "  3. Create a git tag: git tag -a v$new_version -m 'Release v$new_version'"
-    print_info "  4. Push changes: git push && git push --tags"
+    print_info "  2. Commit the changes: git commit -S -m 'chore(release): prepare for v$clean_version'"
+    print_info "  3. Push changes: git push"
+    print_info "  4. When ready to release: ./release.sh"
 }
 
 main "$@"
