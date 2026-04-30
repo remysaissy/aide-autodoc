@@ -64,15 +64,17 @@ The macro sets the OpenAPI `summary` to `"Returns a greeting for the given user.
 
 Runnable examples are in the [`examples/`](examples/) directory:
 
-- [`basic_usage`](examples/basic_usage.rs) — minimal handler with a single doc comment paragraph
-- [`multi_paragraph`](examples/multi_paragraph.rs) — handler with summary and multi-paragraph description
-- [`no_docs`](examples/no_docs.rs) — handler with no doc comment (empty summary/description)
-- [`full_app`](examples/full_app.rs) — complete axum + aide application with multiple routes
+- [`basic_usage`](examples/examples/basic_usage.rs) — minimal handler with a single doc comment paragraph
+- [`multi_paragraph`](examples/examples/multi_paragraph.rs) — handler with summary and multi-paragraph description
+- [`no_docs`](examples/examples/no_docs.rs) — handler with no doc comment (empty summary/description)
+- [`full_app`](examples/examples/full_app.rs) — complete axum + aide application with multiple routes
+
+See [`examples/README.md`](examples/README.md) for detailed descriptions.
 
 Run an example:
 
 ```shell
-cargo run --example basic_usage
+cargo run --example basic_usage -p aide-autodoc-examples
 ```
 
 ## How It Works

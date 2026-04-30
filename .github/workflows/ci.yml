@@ -73,7 +73,7 @@ jobs:
       - uses: Swatinem/rust-cache@v2
       - name: Run examples
         run: |
-          cargo run --example basic_usage -p aide-autodoc
-          cargo run --example multi_paragraph -p aide-autodoc
-          cargo run --example no_docs -p aide-autodoc
-          cargo run --example full_app -p aide-autodoc
+          cargo run --example basic_usage -p aide-autodoc-examples
+          cargo run --example multi_paragraph -p aide-autodoc-examples
+          cargo run --example no_docs -p aide-autodoc-examples
+          cargo run --example full_app -p aide-autodoc-examples
