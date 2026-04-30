@@ -72,7 +72,7 @@ Runnable examples are in the [`examples/`](examples/) directory:
 Run an example:
 
 ```shell
-cargo run --example basic_usage
+cargo run --example basic_usage -p aide-autodoc-examples
 ```
 
 ## How It Works
