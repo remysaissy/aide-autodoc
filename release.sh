@@ -14,22 +14,23 @@ Usage: ./release.sh [OPTION]
 
 Perform a full release from the current -dev version in Cargo.toml:
 strips the -dev suffix, runs tests, commits (signed), tags, pushes,
-publishes to crates.io, creates a GitHub release, then bumps to the
-next patch -dev version and pushes to main.
+then bumps to the next patch -dev version and pushes to main.
+
+Publishing to crates.io, build attestation, and GitHub release creation
+are handled automatically by the release GitHub Actions workflow via
+Trusted Publishing (OIDC). See .github/workflows/release.yml.
 
 Use ./bump-version.sh --minor/--major/--revision first if you need to
 change the planned release target before releasing.
 
 Options:
-    --dry-run     Run all steps except push, publish, and GitHub release
+    --dry-run     Run all steps except push
     --help        Display this help message
 
 Requirements:
     - git-cliff   (cargo install git-cliff)
-    - gh           (GitHub CLI, brew install gh)
     - cargo        (Rust toolchain)
     - GPG key configured for signed commits (git commit -S)
-    - CARGO_REGISTRY_TOKEN env var or cargo login (for crates.io publishing)
 
 EOF
 }
@@ -41,7 +42,7 @@ print_step()    { echo -e "${BLUE}[STEP]${NC} $1"; }
 
 check_dependencies() {
     local missing=0
-    for cmd in git-cliff gh cargo; do
+    for cmd in git-cliff cargo; do
         if ! command -v "$cmd" &> /dev/null; then
             print_error "$cmd is not installed."
             missing=1
@@ -103,22 +104,6 @@ run_tests() {
     cargo test --workspace
 }
 
-publish_crate() {
-    local crate_name=$1
-    local dry_run=$2
-
-    print_step "Publishing $crate_name to crates.io..."
-
-    if [ "$dry_run" = "true" ]; then
-        cargo publish --dry-run -p "$crate_name"
-    else
-        cargo publish -p "$crate_name"
-
-        print_info "Waiting for crates.io to index $crate_name..."
-        sleep 30
-    fi
-}
-
 main() {
     if [ $# -eq 0 ]; then
         show_help
@@ -157,7 +142,7 @@ main() {
     print_info "Release version:    $release_version"
     print_info "Next dev version:   $next_dev_version"
     if [ "$dry_run" = "true" ]; then
-        print_warning "DRY RUN — no push, publish, or GitHub release will be performed"
+        print_warning "DRY RUN — no push will be performed"
     fi
     echo ""
 
@@ -170,19 +155,19 @@ main() {
 
     echo ""
 
-    print_step "1/8 Running tests..."
+    print_step "1/6 Running tests..."
     run_tests
     echo ""
 
-    print_step "2/8 Setting release version $release_version..."
+    print_step "2/6 Setting release version $release_version..."
     update_cargo_version "$release_version"
     print_info "Updated Cargo.toml"
 
-    print_step "3/8 Generating changelog..."
+    print_step "3/6 Generating changelog..."
     generate_changelog "$release_version"
     print_info "Updated CHANGELOG.md"
 
-    print_step "4/8 Creating signed release commit and tag..."
+    print_step "4/6 Creating signed release commit and tag..."
     git add Cargo.toml CHANGELOG.md
     git commit -S -m "chore(release): prepare for v$release_version"
     git tag -a "v$release_version" -m "Release v$release_version"
@@ -190,36 +175,23 @@ main() {
 
     if [ "$dry_run" = "true" ]; then
         echo ""
-        print_step "5/8 [DRY RUN] Skipping push"
-        print_step "6/8 [DRY RUN] Validating crate packages..."
-        publish_crate "aide-autodoc" "true"
-        print_step "7/8 [DRY RUN] Skipping GitHub release"
-        print_step "8/8 [DRY RUN] Skipping post-release dev bump"
+        print_step "5/6 [DRY RUN] Skipping push"
+        print_step "6/6 [DRY RUN] Skipping post-release dev bump"
         echo ""
         print_info "Dry run complete. To finalize:"
         print_info "  git push && git push --tags"
-        print_info "  cargo publish -p aide-autodoc"
-        print_info "  gh release create v$release_version --generate-notes"
+        print_info "  (GitHub Actions will publish to crates.io via Trusted Publishing)"
+        print_info "  (GitHub Actions will create the GitHub release)"
         print_info "  (then bump to $next_dev_version)"
         return
     fi
 
-    print_step "5/8 Pushing release to remote..."
+    print_step "5/6 Pushing release to remote..."
     git push
     git push --tags
     print_info "Pushed commit and tag"
 
-    print_step "6/8 Publishing crates..."
-    publish_crate "aide-autodoc" "false"
-    print_info "Crate published"
-
-    print_step "7/8 Creating GitHub release..."
-    gh release create "v$release_version" \
-        --title "v$release_version" \
-        --notes-file CHANGELOG.md
-    print_info "GitHub release created"
-
-    print_step "8/8 Bumping to next dev version $next_dev_version..."
+    print_step "6/6 Bumping to next dev version $next_dev_version..."
     update_cargo_version "$next_dev_version"
     git add Cargo.toml
     git commit -S -m "chore: begin $next_dev_version development cycle"
@@ -230,9 +202,10 @@ main() {
     print_info "Release v$release_version complete!"
     print_info ""
     print_info "The release workflow will now run on the pushed tag to:"
-    print_info "  - Verify the build"
-    print_info "  - Generate build attestations (gh attestation)"
-    print_info "  - Link the release to the provenance chain"
+    print_info "  - Verify the build (format, clippy, tests)"
+    print_info "  - Publish to crates.io via Trusted Publishing"
+    print_info "  - Generate build attestations"
+    print_info "  - Create the GitHub release"
 }
 
 main "$@"
